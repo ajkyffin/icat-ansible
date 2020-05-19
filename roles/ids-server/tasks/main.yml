@@ -114,6 +114,10 @@
   notify:
     - "ids-server-handler"
 
+- name: "Run tasks for ids-server versions <= 1.7"
+  import_tasks: tasks/compat17.yml
+  when: ids_server_compat17 is defined and ids_server_compat17
+
 - name: "Setup ids-server if not setup"
   import_tasks: tasks/installation.yml
   when: (ansible_local is not defined) or (ansible_local.local is not defined) or (ansible_local.local.instantiations is not defined) or (ansible_local.local.instantiations.ids_server is not defined) or (ansible_local.local.instantiations.ids_server != 'true')

@@ -1,0 +1,54 @@
+---
+
+- name: "Create main data directory"
+  file:
+    path: /home/{{ payara_user }}/data/main
+    state: directory
+    owner: "{{ payara_user }}"
+    group: "{{ payara_user }}"
+    mode: 0775
+
+- name: "Create archive data directory"
+  file:
+    path: /home/{{ payara_user }}/data/archive
+    state: directory
+    owner: "{{ payara_user }}"
+    group: "{{ payara_user }}"
+    mode: 0775
+
+- name: "Copy setup.properties to ids.storage_file-setup.properties"
+  copy:
+    remote_src: yes
+    src: /home/{{ payara_user }}/install/ids.storage_file/setup.properties
+    dest: /home/{{ payara_user }}/install/ids.storage_file/ids.storage_file-setup.properties
+    owner: "{{ payara_user }}"
+    group: "{{ payara_user }}"
+    mode: 0600
+
+- name: "Tweak ids.storage_file-setup.properties to make sure the 'glassfish' variable is set"
+  replace:
+    path: /home/{{ payara_user }}/install/ids.storage_file/ids.storage_file-setup.properties
+    regexp: '^home ='
+    replace: 'glassfish ='
+
+- name: "Configure ids.storage_file.main.properties"
+  template:
+    src: roles/ids-storage_file/templates/main.properties.j2
+    dest: /home/{{ payara_user }}/install/ids.storage_file/ids.storage_file.main.properties
+    owner: "{{ payara_user }}"
+    group: "{{ payara_user }}"
+    mode: 0644
+
+- name: "Configure ids.storage_file.archive.properties"
+  template:
+    src: roles/ids-storage_file/templates/archive.properties.j2
+    dest: /home/{{ payara_user }}/install/ids.storage_file/ids.storage_file.archive.properties
+    owner: "{{ payara_user }}"
+    group: "{{ payara_user }}"
+    mode: 0644
+
+- name: "Fix setup_utils.py for compatability with Payara"
+  replace:
+    path: /home/{{ payara_user }}/install/ids.storage_file/setup_utils.py
+    regexp: 'pos = vline\.find\("\("\)'
+    replace: 'pos = vline.find("#")'

@@ -1,0 +1,3 @@
+---
+
+ids_server_compat17: '{{ not not ( ids_server_version | regex_search("1\.[0-7]\..*") ) }}'
