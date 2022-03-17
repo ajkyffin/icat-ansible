@@ -10,28 +10,15 @@ jobs:
   run_all_roles:
     runs-on: ubuntu-20.04
     steps:
-    - name: Checkout ICAT Ansible
-      uses: actions/checkout@v2
-    
-    - name: Install requirements
-      run: pip install -r requirements.txt
 
-    # Prep for running the playbook
-    - name: Create hosts file
-      run: echo -e "[hosts_all]\nlocalhost ansible_connection=local" > hosts
-    - name: Prepare vault pass
-      run: echo -e "icattravispw" > vault_pass.txt
-    - name: Move vault to directory it'll get detected by Ansible
-      run: mv vault.yml group_vars/all
-    - name: Replace default payara user with Actions user
-      run: |
-        sed -i -e "s/^payara_user: \"glassfish\"/payara_user: \"runner\"/" group_vars/all/vars.yml
+    - name: Check ports
+      run: sudo netstat -lnp
 
-    # Force hostname to localhost - bug fix for previous ICAT Ansible issues on Actions
-    - name: Change hostname to localhost
-      run: sudo hostname -b localhost
+    - name: Check mysql service
+      run: sudo systemctl status mysql
 
-    - name: Run ICAT Ansible Playbook
-      run: |
-        ansible-playbook hosts_all.yml -i hosts --vault-password-file vault_pass.txt -vv
+    - name: Check /var/lib/mysql
+      run: sudo ls -lh /var/lib/mysql/
 
+    - name: Check Apparmor
+      run: sudo ls -lh /etc/apparmor.d/
