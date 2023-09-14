@@ -26,7 +26,7 @@ jobs:
 
     # Prep for running the playbook
     - name: Create hosts file
-      run: echo -e "[hosts_all]\nlocalhost ansible_connection=local" > hosts
+      run: echo -e "[icatdb_minimal_hosts]\nlocalhost ansible_connection=local" > hosts
     - name: Prepare vault pass
       run: echo -e "icattravispw" > vault_pass.txt
     - name: Move vault to directory it'll get detected by Ansible
@@ -47,5 +47,5 @@ jobs:
 
     - name: Run ICAT Ansible Playbook
       run: |
-        ansible-playbook hosts_all.yml -i hosts --vault-password-file vault_pass.txt -e java_version=${{ matrix.java_version }} -vv
+        ansible-playbook icatdb_minimal_hosts.yml -i hosts --vault-password-file vault_pass.txt -e java_version=${{ matrix.java_version }} -vv
 
