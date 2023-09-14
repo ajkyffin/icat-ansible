@@ -25,7 +25,7 @@
     remote_src: true
     owner: '{{ payara_user }}'
     group: '{{ payara_user }}'
-  when: ansible_local.local.instantiations.authn_db is not defined or ansible_local.local.versions.authn_db != authn_db_version
+  when: '"authn.db-"+authn_db_version not in payara_info.applications'
 
 - name: "Find any war files not matching the current version"
   find:
@@ -115,10 +115,32 @@
   notify:
     - "authn_db-handler"
 
+# This forces the handler to be notified
 - name: "Setup authn_db if not setup or a different version is found"
-  import_tasks: tasks/installation.yml
-  when: (ansible_local is not defined) or (ansible_local.local is not defined) or (ansible_local.local.instantiations is not defined) or (ansible_local.local.instantiations.authn_db is not defined) or (ansible_local.local.instantiations.authn_db != 'true') or (ansible_local.local.versions.authn_db != authn_db_version)
+  assert:
+    that: true
+    quiet: true
+  changed_when: true
+  notify: authn_db-handler
+  when: "'authn.db-'+authn_db_version not in payara_info.applications"
+
+- meta: flush_handlers
+
+- name: "Check that authn_db is installed"
+  assert:
+    that:
+      - payara_info.is_running
+      - "'authn.db-'+authn_db_version in payara_info.applications"
+
+- name: "Check that authn_db is working"
+  uri:
+    url: "{{ authn_db_url }}/authn.db/description"
+    validate_certs: false
 
 - name: "Setup default database users"
   import_tasks: create_default_users.yml
   when: (ansible_local is defined) and (ansible_local.local is defined) and (ansible_local.local.instantiations is defined) and (ansible_local.local.instantiations.mariadb is defined) and (ansible_local.local.instantiations.mariadb == 'true')
+
+- name: "Set temporary fact to indicate authn_db is installed within play"
+  set_fact:
+    - auth_db_installed: true

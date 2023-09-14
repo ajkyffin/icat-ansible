@@ -25,7 +25,7 @@
     remote_src: true
     owner: '{{ payara_user }}'
     group: '{{ payara_user }}'
-  when: ansible_local.local.instantiations.authn_simple is not defined or ansible_local.local.versions.authn_simple != authn_simple_version
+  when: "'authn.simple-'+authn_simple_version not in payara_info.applications"
 
 - name: "Find any war files not matching the current version"
   find:
@@ -104,6 +104,28 @@
   notify:
     - "authn_simple-handler"
 
+# This forces the handler to be notified
 - name: "Setup authn_simple if not setup or a different version is found"
-  import_tasks: tasks/installation.yml
-  when: (ansible_local is not defined) or (ansible_local.local is not defined) or (ansible_local.local.instantiations is not defined) or (ansible_local.local.instantiations.authn_simple is not defined) or (ansible_local.local.instantiations.authn_simple != 'true') or (ansible_local.local.versions.authn_simple != authn_simple_version)
+  assert:
+    that: true
+    quiet: true
+  changed_when: true
+  notify: authn_simple-handler
+  when: "'authn.simple-'+authn_simple_version not in payara_info.applications"
+
+- meta: flush_handlers
+
+- name: "Check that authn_simple is installed"
+  assert:
+    that:
+      - payara_info.is_running
+      - "'authn.simple-'+authn_simple_version in payara_info.applications"
+
+- name: "Check that authn_simple is working"
+  uri:
+    url: "{{ authn_simple_url }}/authn.simple/description"
+    validate_certs: false
+
+- name: "Set temporary fact to indicate authn_simple is installed within play"
+  set_fact:
+    authn_simple_installed: true

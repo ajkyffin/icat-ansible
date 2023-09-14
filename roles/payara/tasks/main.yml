@@ -134,6 +134,7 @@
     path: '{{ payara_dir }}/glassfish/config/asenv.conf'
     line: 'AS_JAVA="{{ java_dir }}"'
     regexp: '^AS_JAVA='
+  notify: payara-handler
 
 - name: 'Temporary fix for Java 17'
   lineinfile:
@@ -144,11 +145,6 @@
 - name: 'Setup payara if not setup'
   import_tasks: tasks/installation.yml
   when: (ansible_local is not defined) or (ansible_local.local is not defined) or (ansible_local.local.instantiations is not defined) or (ansible_local.local.instantiations.payara is not defined) or (ansible_local.local.instantiations.payara != 'true') or (ansible_local.local.versions.payara != payara_version)
-
-- name: 'Check payara domain'
-  stat:
-    path: '{{ payara_domain_dir }}/lib'
-  register: domainResult
 
 - name: 'Create directory for local jars'
   file:
@@ -213,3 +209,17 @@
   notify: payara-handler
 
 - meta: flush_handlers
+
+- name: 'Collect Payara info'
+  payara_info:
+    asadmin: '{{ payara_dir }}/bin/asadmin'
+    return_version: true
+  become: true
+  become_user: "{{ payara_user }}"
+  register: payara_info
+
+- name: 'Check Payara'
+  assert:
+    that:
+      - payara_info.is_running
+      - payara_info.version == payara_version

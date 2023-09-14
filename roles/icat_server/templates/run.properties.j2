@@ -22,7 +22,7 @@ exportCacheSize = 50
 authn.list = {{ icat_server_authn_list }}
 
 # Parameters for each of the four plugins
-{% if ansible_local.local.instantiations.authn_db is defined and ansible_local.local.instantiations.authn_db == 'true' %} 
+{% if authn_db_installed | bool %} 
 authn.db.url = {{ authn_db_url }}
 authn.db.friendly = DB
 authn.db.admin = {{ icat_server_authn_db_admin }}
@@ -30,7 +30,7 @@ authn.db.admin = {{ icat_server_authn_db_admin }}
 !authn.db.url = https://localhost:8181
 {% endif %}
 
-{% if ansible_local.local.instantiations.authn_ldap is defined and ansible_local.local.instantiations.authn_ldap == 'true' %}
+{% if authn_ldap_installed | bool %}
 authn.ldap.url = {{ authn_ldap_url }}
 authn.ldap.admin = {{ icat_server_authn_ldap_admin }}
 authn.ldap.friendly = Federal Id
@@ -40,7 +40,7 @@ authn.ldap.friendly = Federal Id
 !authn.ldap.friendly = Federal Id
 {% endif %}
 
-{% if ansible_local.local.instantiations.authn_simple is defined and ansible_local.local.instantiations.authn_simple == 'true' %}
+{% if authn_simple_installed | bool %}
 authn.simple.url = {{ authn_simple_url }}
 authn.simple.friendly = Simple
 {% else %}
@@ -48,7 +48,7 @@ authn.simple.friendly = Simple
 !authn.simple.friendly = Simple
 {% endif %}
 
-{% if ansible_local.local.instantiations.authn_anon is defined and ansible_local.local.instantiations.authn_anon == 'true' %}
+{% if authn_anon_installed | bool %}
 authn.anon.url = {{ authn_anon_url }}
 authn.anon.friendly = Anonymous
 {% else %}

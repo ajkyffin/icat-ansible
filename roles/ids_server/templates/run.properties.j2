@@ -12,11 +12,11 @@ processQueueIntervalSeconds = 5
 sizeCheckIntervalSeconds = 60
 !readOnly = true
 maxIdsInQuery = 1000
-rootUserNames = {% if ansible_local.local.instantiations.authn_simple is defined and ansible_local.local.instantiations.authn_simple == 'true' %}simple/root {% endif %}{% if ansible_local.local.instantiations.authn_db is defined and ansible_local.local.instantiations.authn_db == 'true' %}db/root {% endif %}
+rootUserNames = {% if authn_simple_installed | bool %}simple/root {% endif %}{% if authn_db_installed | bool == 'true' %}db/root {% endif %}
 
-{% if ansible_local.local.instantiations.authn_simple is defined and ansible_local.local.instantiations.authn_simple == 'true' %}
+{% if authn_simple_installed | bool %}
 reader = simple username {{ authn_reader_username }} password {{ authn_reader_password }}
-{% elif ansible_local.local.instantiations.authn_db is defined and ansible_local.local.instantiations.authn_db == 'true' %}
+{% elif authn_db_installed | bool %}
 reader = db username {{ db_user_username }} password {{ db_user_password }}
 {% endif %}
 

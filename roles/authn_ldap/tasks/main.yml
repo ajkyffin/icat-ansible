@@ -25,7 +25,7 @@
     remote_src: true
     owner: "{{ payara_user }}"
     group: "{{ payara_user }}"
-  when: ansible_local.local.instantiations.authn_ldap is not defined or ansible_local.local.versions.authn_ldap != authn_ldap_version
+  when: "'authn.ldap-'+authn_ldap_version not in payara_info.applications"
 
 - name: "Find any war files not matching the current version"
   find:
@@ -105,9 +105,26 @@
     - "authn_ldap-handler"
 
 - name: "Setup authn_ldap if not setup or a different version is found"
-  import_tasks: tasks/installation.yml
-  when: (ansible_local is not defined) or (ansible_local.local is not defined) or (ansible_local.local.instantiations is not defined) or (ansible_local.local.instantiations.authn_ldap is not defined) or (ansible_local.local.instantiations.authn_ldap != 'true') or (ansible_local.local.versions.authn_ldap != authn_ldap_version)
+  assert:
+    that: true
+    quiet: true
+  changed_when: true
+  notify: authn_ldap-handler
+  when: "'authn.ldap-'+authn_ldap_version not in payara_info.applications"
+
+- meta: flush_handlers
+
+- name: "Check that authn_ldap is installed"
+  assert:
+    that:
+      - payara_info.is_running
+      - "'authn.ldap-'+authn_ldap_version in payara_info.applications"
+
+- name: "Check that authn_ldap is working"
+  uri:
+    url: "{{ authn_ldap_url }}/authn.ldap/description"
+    validate_certs: false
 
 - name: "Set temporary fact to indicate authn_ldap is installed within play"
   set_fact:
-    authn_ldap: true
+    authn_ldap_installed: true

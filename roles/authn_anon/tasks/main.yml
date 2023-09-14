@@ -25,7 +25,7 @@
     remote_src: true
     owner: "{{ payara_user }}"
     group: "{{ payara_user }}"
-  when: ansible_local.local.instantiations.authn_anon is not defined or ansible_local.local.versions.authn_anon != authn_anon_version
+  when: "'authn.anon-'+authn_anon_version not in payara_info.applications"
 
 - name: "Find any war files not matching the current version"
   find:
@@ -87,10 +87,28 @@
   notify:
     - "authn_anon-handler"
 
+# This forces the handler to be notified
 - name: "Setup authn_anon if not setup or a different version is found"
-  import_tasks: tasks/installation.yml
-  when: (ansible_local is not defined) or (ansible_local.local is not defined) or (ansible_local.local.instantiations is not defined) or (ansible_local.local.instantiations.authn_anon is not defined) or (ansible_local.local.instantiations.authn_anon != 'true') or (ansible_local.local.versions.authn_anon != authn_anon_version)
+  assert:
+    that: true
+    quiet: true
+  changed_when: true
+  notify: authn_anon-handler
+  when: "'authn.anon-'+authn_anon_version not in payara_info.applications"
+
+- meta: flush_handlers
+
+- name: 'Check that authn_anon is installed'
+  assert:
+    that:
+      - payara_info.is_running
+      - "'authn.anon-'+authn_anon_version in payara_info.applications"
+
+- name: 'Check that authn_anon is working'
+  uri:
+    url: "{{ authn_anon_url }}/authn.anon/description"
+    validate_certs: false
 
 - name: "Set temporary fact to indicate authn_anon is installed within play"
   set_fact:
-    authn_anon: true
+    authn_anon_installed: true
