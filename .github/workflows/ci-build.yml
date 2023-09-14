@@ -11,6 +11,7 @@ jobs:
     name: Run all ICAT Ansible roles
     runs-on: ubuntu-22.04
     strategy:
+      fail-fast: false
       matrix:
         java_version: [11, 17]
 
@@ -46,6 +47,9 @@ jobs:
         sudo rm -rf /var/lib/mysql* /etc/mysql
 
     - name: Run ICAT Ansible Playbook
+      continue-on-error: true
       run: |
         ansible-playbook icatdb_minimal_hosts.yml -i hosts --vault-password-file vault_pass.txt -e java_version=${{ matrix.java_version }} -vv
 
+    - name: Print server.log
+      run: cat /home/runner/payara6.2023.8/glassfish/domains/domain1/logs/server.log
