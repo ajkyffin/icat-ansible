@@ -1,6 +1,6 @@
 ---
 
-payara_version: '7.2025.1.Alpha4'
+payara_version: '7.2025.1.Beta1'
 payara_dir: '/home/{{ payara_user }}/payara{{ payara_version }}'
 payara_domain: 'domain1'
 payara_domain_dir: '{{ payara_dir }}/glassfish/domains/{{ payara_domain }}'
