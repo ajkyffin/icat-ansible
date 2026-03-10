@@ -18,11 +18,12 @@ jobs:
     - name: Checkout ICAT Ansible
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     
-    - name: Run apt update
-      run: sudo apt-get update
-
     - name: Install requirements
-      run: pip install -r requirements.txt
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install ansible ansible-mitogen
+        echo '[defaults]' > ~/.ansible.cnf
+        echo 'strategy = mitogen_linear' >> ~/.ansible.cnf
 
     # Prep for running the playbook
     - name: Create hosts file
